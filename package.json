@@ -1,0 +1,20 @@
+{
+  "name": "mesto-back",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "npm run start",
+    "dev": "npm run dev",
+    "lint": "npx eslint ."
+  },
+  "author": {
+    "name": "Mariya Volochek",
+    "email": "volochek92@yandex.ru"
+  },
+  "devDependencies": {
+    "eslint": "^8.2.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.25.2"
+  },
+  "prettier": {"singleQuote": true}
+}
