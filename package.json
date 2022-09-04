@@ -111,6 +111,7 @@
     "lru-cache": "^6.0.0",
     "minimatch": "^3.1.2",
     "minimist": "^1.2.6",
+    "mongoose": "^6.5.4",
     "ms": "^2.1.2",
     "natural-compare": "^1.4.0",
     "object-inspect": "^1.12.2",
