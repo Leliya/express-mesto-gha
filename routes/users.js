@@ -7,6 +7,12 @@ router.get('/', (req, res) => {
     .catch((err) => res.status(500).send({ message: err.message }));
 });
 
+router.get('/:userId', (req, res) => {
+  User.findById(req.params.userId)
+    .then((user) => res.send({ user }))
+    .catch((err) => res.status(500).send({ message: err.message }));
+});
+
 router.post('/', (req, res) => {
   const { name, about, avatar } = req.body;
   User.create({ name, about, avatar })
