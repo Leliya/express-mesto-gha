@@ -1,11 +1,5 @@
 const mongoose = require('mongoose');
 
-// const ownerSchema = new mongoose.Schema({
-//   type: mongoose.Schema.Types.ObjectId,
-//   ref: 'user',
-//   required: true,
-// });
-
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
