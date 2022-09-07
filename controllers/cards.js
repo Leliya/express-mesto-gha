@@ -22,11 +22,18 @@ const deleteCard = (req, res) => {
       if (response) {
         res.send({ message: 'Пост удалён' });
       } else {
-        res.status(404).send('Карточки не существует или она уже была удалена');
+        res.status(404).send({ message: 'Карточки не существует или она уже была удалена' });
       }
     })
-    .catch(() => {
-      res.status(500).send('Что-то пошло не так');
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        return res
+          .status(STATUS_CODE_400)
+          .send({ message: 'Переданы некорректные данные' });
+      }
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
     });
 };
 
@@ -56,7 +63,7 @@ const likeCard = (req, res) => {
       if (card) {
         res.send({ card });
       } else {
-        res.status(STATUS_CODE_404).send('Карточка не найдена');
+        res.status(STATUS_CODE_404).send({ message: 'Карточка не найдена' });
       }
     })
     .catch((err) => {
@@ -81,7 +88,7 @@ const dislikeCard = (req, res) => {
       if (card) {
         res.send({ card });
       } else {
-        res.status(STATUS_CODE_404).send('Карточка не найдена');
+        res.status(STATUS_CODE_404).send({ message: 'Карточка не найдена' });
       }
     })
     .catch((err) => {

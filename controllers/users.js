@@ -18,13 +18,17 @@ const getUsers = (req, res) => {
 const getUser = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => {
-      res.send({ user });
+      if (user) {
+        res.send({ user });
+      } else {
+        res.status(STATUS_CODE_404).send({ message: 'Пользователь не найден' });
+      }
     })
     .catch((err) => {
       if (err.name === 'CastError') {
         return res
-          .status(STATUS_CODE_404)
-          .send({ message: 'Пользователь не найден' });
+          .status(STATUS_CODE_400)
+          .send({ message: 'Переданы некорректные данные' });
       }
       return res
         .status(STATUS_CODE_500)
