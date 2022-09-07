@@ -3,7 +3,9 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const mongoose = require('mongoose');
-const router = require('./routes/users');
+const { STATUS_CODE_404 } = require('./utils/statusCode');
+const userRouter = require('./routes/users');
+const cardRouter = require('./routes/cards');
 
 const { PORT = 3000 } = process.env;
 
@@ -16,11 +18,18 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   // useFindAndModify: false,
 });
 
-app.use('/users', router);
-// app.post('/users', (req, res) => {
-//   console.log(req.body);
-//   res.send(req.body);
-// });
+app.use((req, res, next) => {
+  req.user = {
+    _id: '6317a111bc71a05dcbf037c4',
+  };
+  next();
+});
+
+app.use('/users', userRouter);
+app.use('/cards', cardRouter);
+app.use('/', (req, res) => {
+  res.status(STATUS_CODE_404).send({ message: 'Ресурс не найден. Проверьте URL и метод запроса' });
+});
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
