@@ -18,11 +18,10 @@ const getCards = (req, res) => {
 
 const deleteCard = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
+    .orFail(() => { throw new Error('NotFound'); })
     .then((response) => {
       if (response) {
         res.send({ message: 'Пост удалён' });
-      } else {
-        res.status(404).send({ message: 'Карточки не существует или она уже была удалена' });
       }
     })
     .catch((err) => {
@@ -30,6 +29,11 @@ const deleteCard = (req, res) => {
         return res
           .status(STATUS_CODE_400)
           .send({ message: 'Переданы некорректные данные' });
+      }
+      if (err.message === 'NotFound') {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: 'Карточки не существует или она уже была удалена' });
       }
       return res
         .status(STATUS_CODE_500)
@@ -58,15 +62,18 @@ const likeCard = (req, res) => {
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
-  )
+  ).orFail(() => { throw new Error('NotFound'); })
     .then((card) => {
       if (card) {
         res.send({ card });
-      } else {
-        res.status(STATUS_CODE_404).send({ message: 'Карточка не найдена' });
       }
     })
     .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: 'Карточка не найдена' });
+      }
       if (err.name === 'CastError') {
         return res
           .status(STATUS_CODE_400)
@@ -83,15 +90,18 @@ const dislikeCard = (req, res) => {
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
-  )
+  ).orFail(() => { throw new Error('NotFound'); })
     .then((card) => {
       if (card) {
         res.send({ card });
-      } else {
-        res.status(STATUS_CODE_404).send({ message: 'Карточка не найдена' });
       }
     })
     .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: 'Карточка не найдена' });
+      }
       if (err.name === 'CastError') {
         return res
           .status(STATUS_CODE_400)

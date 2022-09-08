@@ -17,14 +17,16 @@ const getUsers = (req, res) => {
 
 const getUser = (req, res) => {
   User.findById(req.params.userId)
+    .orFail(() => { throw new Error('NotFound'); })
     .then((user) => {
-      if (user) {
-        res.send({ user });
-      } else {
-        res.status(STATUS_CODE_404).send({ message: 'Пользователь не найден' });
-      }
+      res.send({ user });
     })
     .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: 'Такого пользователя не существует' });
+      }
       if (err.name === 'CastError') {
         return res
           .status(STATUS_CODE_400)
@@ -58,15 +60,14 @@ const updateUser = (req, res) => {
     req.user._id,
     { name, about, avatar },
     { new: true, runValidators: true },
-  )
-    .then((user) => {
-      if (user) {
-        res.send({ user });
-      } else {
-        res.status(STATUS_CODE_404).send({ message: 'Пользователь не найден' });
-      }
-    })
+  ).orFail(() => { throw new Error('NotFound'); })
+    .then((user) => res.send({ user }))
     .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: 'Такого пользователя не существует' });
+      }
       if (err.name === 'ValidationError') {
         return res
           .status(STATUS_CODE_400)
@@ -85,14 +86,14 @@ const updateAvatar = (req, res) => {
     { avatar },
     { new: true, runValidators: true },
   )
-    .then((user) => {
-      if (user) {
-        res.send({ user });
-      } else {
-        res.status(STATUS_CODE_404).send({ message: 'Пользователь не найден' });
-      }
-    })
+    .orFail(() => { throw new Error('NotFound'); })
+    .then((user) => res.send({ user }))
     .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: 'Такого пользователя не существует' });
+      }
       if (err.name === 'ValidationError') {
         return res
           .status(STATUS_CODE_400)
