@@ -1,4 +1,6 @@
+const bcrypt = require('bcryptjs');
 const User = require('../models/user');
+
 const {
   STATUS_CODE_400,
   STATUS_CODE_404,
@@ -39,19 +41,33 @@ const getUser = (req, res) => {
 };
 
 const createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
-  User.create({ name, about, avatar })
-    .then((user) => res.send({ user }))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
+  const {
+    name,
+    about,
+    avatar,
+    email,
+    password,
+  } = req.body;
+  bcrypt.hash(password, 10).then((hash) => {
+    User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hash,
+    })
+      .then((user) => res.send({ user }))
+      .catch((err) => {
+        if (err.name === 'ValidationError') {
+          return res
+            .status(STATUS_CODE_400)
+            .send({ message: 'Переданы некорректные данные' });
+        }
         return res
-          .status(STATUS_CODE_400)
-          .send({ message: 'Переданы некорректные данные' });
-      }
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
-    });
+          .status(STATUS_CODE_500)
+          .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
+      });
+  }).catch((err) => res.status(400).send(err));
 };
 
 const updateUser = (req, res) => {
