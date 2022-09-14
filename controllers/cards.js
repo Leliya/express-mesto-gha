@@ -2,6 +2,7 @@ const Card = require('../models/card');
 const {
   STATUS_CODE_400,
   STATUS_CODE_404,
+  STATUS_CODE_403,
   STATUS_CODE_500,
 } = require('../utils/statusCode');
 
@@ -17,9 +18,18 @@ const getCards = (req, res) => {
 };
 
 const deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .orFail(() => { throw new Error('NotFound'); })
-    .then(() => res.send({ message: 'Пост удалён' }))
+    .then((card) => {
+      if (String(card.owner) !== req.user._id) {
+        return res
+          .status(STATUS_CODE_403)
+          .send({ message: 'Можно удалять только свои карточки' });
+      }
+      return Card.findByIdAndRemove(req.params.cardId)
+        .then(() => res.send({ message: 'Пост удалён' }))
+        .catch((err) => console.log(err));
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
         return res

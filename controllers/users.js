@@ -33,7 +33,28 @@ const getUser = (req, res) => {
       if (err.name === 'CastError') {
         return res
           .status(STATUS_CODE_400)
-          .send({ message: 'Переданы некорректные данные' });
+          .send({ message: 'Переданы некорректные данные5' });
+      }
+      return res
+        .status(STATUS_CODE_500)
+        .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
+    });
+};
+
+const getCurrentUser = (req, res) => {
+  console.log(req.user._id);
+  User.findById(req.user._id).orFail(() => { throw new Error('NotFound'); })
+    .then((user) => res.send({ user }))
+    .catch((err) => {
+      if (err.message === 'NotFound') {
+        return res
+          .status(STATUS_CODE_404)
+          .send({ message: 'Такого пользователя не существует' });
+      }
+      if (err.name === 'CastError') {
+        return res
+          .status(STATUS_CODE_400)
+          .send({ message: 'Переданы некорректные данные4' });
       }
       return res
         .status(STATUS_CODE_500)
@@ -62,7 +83,7 @@ const createUser = (req, res) => {
         if (err.name === 'ValidationError') {
           return res
             .status(STATUS_CODE_400)
-            .send({ message: 'Переданы некорректные данные' });
+            .send({ message: 'Переданы некорректные данные3' });
         }
         return res
           .status(STATUS_CODE_500)
@@ -88,7 +109,7 @@ const updateUser = (req, res) => {
       if (err.name === 'ValidationError') {
         return res
           .status(STATUS_CODE_400)
-          .send({ message: 'Переданы некорректные данные' });
+          .send({ message: 'Переданы некорректные данные2' });
       }
       return res
         .status(STATUS_CODE_500)
@@ -114,7 +135,7 @@ const updateAvatar = (req, res) => {
       if (err.name === 'ValidationError') {
         return res
           .status(STATUS_CODE_400)
-          .send({ message: 'Переданы некорректные данные' });
+          .send({ message: 'Переданы некорректные данные1' });
       }
       return res
         .status(STATUS_CODE_500)
@@ -127,7 +148,7 @@ const login = (req, res) => {
 
   User.findUserByCredentials(email, password).then((user) => {
     const token = jwt.sign({ _id: user._id }, 'some-secret-key', { expiresIn: '7d' });
-    res
+    return res
       .cookie('jwt', token, {
         maxAge: 3600000 * 24 * 7,
         httpOnly: true,
@@ -148,4 +169,5 @@ module.exports = {
   updateUser,
   updateAvatar,
   login,
+  getCurrentUser,
 };

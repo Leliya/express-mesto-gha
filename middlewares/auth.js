@@ -17,5 +17,7 @@ module.exports.auth = (req, res, next) => {
       .send({ message: 'Необходима авторизация' });
   }
   req.user = payload;
+  console.log('авторизация успешна');
+  console.log(req.user);
   return next();
 };
