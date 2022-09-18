@@ -49,7 +49,10 @@ const createUser = (req, res, next) => {
       email,
       password: hash,
     })
-      .then((user) => res.send({ user }))
+      .then((user) => {
+        const userConfidential = user.toObject({ useProjection: true });
+        res.send({ userConfidential });
+      })
       .catch((err) => {
         if (err.name === 'CastError') {
           return next(new IncorrectDataError('Переданы некорректные данные'));
