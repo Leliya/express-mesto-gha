@@ -1,113 +1,73 @@
 const Card = require('../models/card');
-const {
-  STATUS_CODE_400,
-  STATUS_CODE_404,
-  STATUS_CODE_403,
-  STATUS_CODE_500,
-} = require('../utils/statusCode');
+const DeleteCardError = require('../errors/delete-card-error');
+const IncorrectDataError = require('../errors/incorrect-data-error');
+const NotFoundError = require('../errors/not-found-error');
 
-const getCards = (req, res) => {
+const getCards = (req, res, next) => {
   Card.find({})
     .populate('owner')
     .then((cards) => res.send({ cards }))
-    .catch(() => {
-      res
-        .status(STATUS_CODE_500)
-        .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
-    });
+    .catch(next);
 };
 
-const deleteCard = (req, res) => {
+const deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId)
-    .orFail(() => { throw new Error('NotFound'); })
+    .orFail(() => { throw new NotFoundError('Карточка не найдена'); })
     .then((card) => {
       if (String(card.owner) !== req.user._id) {
-        return res
-          .status(STATUS_CODE_403)
-          .send({ message: 'Можно удалять только свои карточки' });
+        throw new DeleteCardError('Можно удалять только свои карточки');
       }
       return Card.findByIdAndRemove(req.params.cardId)
         .then(() => res.send({ message: 'Пост удалён' }))
-        .catch((err) => console.log(err));
+        .catch(next);
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res
-          .status(STATUS_CODE_400)
-          .send({ message: 'Переданы некорректные данные' });
+        return next(new IncorrectDataError('Переданы некорректные данные'));
       }
-      if (err.message === 'NotFound') {
-        return res
-          .status(STATUS_CODE_404)
-          .send({ message: 'Карточки не существует или она уже была удалена' });
-      }
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
+      return next(err);
     });
 };
 
-const createCard = (req, res) => {
+const createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send({ card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res
-          .status(STATUS_CODE_400)
-          .send({ message: 'Переданы некорректные данные' });
+        return next(new IncorrectDataError('Переданы некорректные данные'));
       }
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
+      return next(err);
     });
 };
 
-const likeCard = (req, res) => {
+const likeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
     { new: true },
-  ).orFail(() => { throw new Error('NotFound'); })
+  ).orFail(() => { throw new NotFoundError('Карточка не найдена'); })
     .then((card) => res.send({ card }))
     .catch((err) => {
-      if (err.message === 'NotFound') {
-        return res
-          .status(STATUS_CODE_404)
-          .send({ message: 'Карточка не найдена' });
-      }
       if (err.name === 'CastError') {
-        return res
-          .status(STATUS_CODE_400)
-          .send({ message: 'Переданы некорректные данные' });
+        return next(new IncorrectDataError('Переданы некорректные данные'));
       }
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
+      return next(err);
     });
 };
 
-const dislikeCard = (req, res) => {
+const dislikeCard = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
     { new: true },
-  ).orFail(() => { throw new Error('NotFound'); })
+  ).orFail(() => { throw new NotFoundError('Карточка не найдена'); })
     .then((card) => res.send({ card }))
     .catch((err) => {
-      if (err.message === 'NotFound') {
-        return res
-          .status(STATUS_CODE_404)
-          .send({ message: 'Карточка не найдена' });
-      }
       if (err.name === 'CastError') {
-        return res
-          .status(STATUS_CODE_400)
-          .send({ message: 'Переданы некорректные данные' });
+        return next(new IncorrectDataError('Переданы некорректные данные'));
       }
-      return res
-        .status(STATUS_CODE_500)
-        .send({ message: 'Внутренняя ошибка. Попробуйте еще раз' });
+      return next(err);
     });
 };
 

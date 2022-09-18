@@ -1,23 +1,17 @@
 const jwt = require('jsonwebtoken');
-// const cookieParser = require('cookie-parser');
+const AuthorizationError = require('../errors/authorization-error');
 
 module.exports.auth = (req, res, next) => {
   const token = req.cookies.jwt;
   if (!token) {
-    return res
-      .status(401)
-      .send({ message: 'Необходима авторизация' });
+    throw new AuthorizationError('Необходима авторизация');
   }
   let payload;
   try {
     payload = jwt.verify(token, 'some-secret-key');
-  } catch (err) {
-    return res
-      .status(401)
-      .send({ message: 'Необходима авторизация' });
+  } catch {
+    return next(new AuthorizationError('Необходима авторизация'));
   }
   req.user = payload;
-  console.log('авторизация успешна');
-  console.log(req.user);
   return next();
 };

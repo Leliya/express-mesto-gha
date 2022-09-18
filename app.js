@@ -2,10 +2,11 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
 const cookieParser = require('cookie-parser');
+const { celebrate, Joi, errors } = require('celebrate');
 
 const app = express();
 const mongoose = require('mongoose');
-const { STATUS_CODE_404 } = require('./utils/statusCode');
+const NotFoundError = require('./errors/not-found-error');
 const { auth } = require('./middlewares/auth');
 const userRouter = require('./routes/users');
 const cardRouter = require('./routes/cards');
@@ -27,17 +28,41 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   // useFindAndModify: false,
 });
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email(),
+    password: Joi.string().min(8),
+  }),
+}), login);
+
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().email(),
+    password: Joi.string().min(8),
+  }),
+}), createUser);
 
 app.use(auth);
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
 
-app.use('/', (req, res) => {
-  res.status(STATUS_CODE_404).send({ message: 'Ресурс не найден. Проверьте URL и метод запроса' });
+app.use('/', (req, res, next) => {
+  next(new NotFoundError('Ресурс не найден. Проверьте URL и метод запроса'));
 });
 
-app.listen(PORT, () => {
-  console.log(`App listening on port ${PORT}`);
+app.use(errors());
+
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
+  next();
 });
+
+app.listen(PORT);
