@@ -20,7 +20,7 @@ const getUser = (req, res, next) => {
       res.send({ user });
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         return next(new IncorrectDataError('Переданы некорректные данные'));
       }
       return next(err);
@@ -54,7 +54,7 @@ const createUser = (req, res, next) => {
         res.send({ userConfidential });
       })
       .catch((err) => {
-        if (err.name === 'CastError') {
+        if (err.name === 'ValidationError') {
           return next(new IncorrectDataError('Переданы некорректные данные'));
         }
         if (err.code === 11000) {
@@ -63,7 +63,7 @@ const createUser = (req, res, next) => {
         return next(err);
       });
   }).catch((err) => {
-    if (err.name === 'CastError') {
+    if (err.name === 'ValidationError') {
       return next(new IncorrectDataError('Переданы некорректные данные'));
     }
     return next(err);
@@ -79,7 +79,7 @@ const updateUser = (req, res, next) => {
   ).orFail(() => { throw new NotFoundError('Пользователь не найден'); })
     .then((user) => res.send({ user }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         return next(new IncorrectDataError('Переданы некорректные данные'));
       }
       return next(err);
@@ -96,7 +96,7 @@ const updateAvatar = (req, res, next) => {
     .orFail(() => { throw new NotFoundError('Пользователь не найден'); })
     .then((user) => res.send({ user }))
     .catch((err) => {
-      if (err.name === 'CastError') {
+      if (err.name === 'ValidationError') {
         return next(new IncorrectDataError('Переданы некорректные данные'));
       }
       return next(err);
@@ -115,12 +115,12 @@ const login = (req, res, next) => {
       })
       .send({ email, password });
   })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return next(new IncorrectDataError('Переданы некорректные данные'));
-      }
-      return next(err);
-    });
+    .catch(next);
+};
+
+const unlogin = (req, res) => {
+  console.log(req.cookies.jwt);
+  res.clearCookie('jwt').send({ message: 'Вы вышли из профиля' });
 };
 
 module.exports = {
@@ -131,4 +131,5 @@ module.exports = {
   updateAvatar,
   login,
   getCurrentUser,
+  unlogin,
 };
