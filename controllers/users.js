@@ -119,7 +119,6 @@ const login = (req, res, next) => {
 };
 
 const unlogin = (req, res) => {
-  console.log(req.cookies.jwt);
   res.clearCookie('jwt').send({ message: 'Вы вышли из профиля' });
 };
 
